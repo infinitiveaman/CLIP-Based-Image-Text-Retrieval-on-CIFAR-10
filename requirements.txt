@@ -1,0 +1,11 @@
+torch
+torchvision
+ftfy
+regex
+tqdm
+gradio
+sentence-transformers
+git+https://github.com/openai/CLIP.git
+Pillow
+matplotlib
+numpy
