@@ -1,7 +1,4 @@
-# app.py
-# -----------------------------------------
-# Multilingual CLIP Image Retrieval Demo (CPU Optimized)
-# -----------------------------------------
+
 
 import torch
 import clip
@@ -11,21 +8,18 @@ import torchvision.transforms as transforms
 import gradio as gr
 from PIL import Image
 
-# -----------------------------------------
 # Force CPU
-# -----------------------------------------
+
 device = "cpu"
 
-# -----------------------------------------
 # Load models
-# -----------------------------------------
 clip_model, preprocess = clip.load("ViT-B/32", device=device)
 clip_model.eval()  # eval mode
 text_model = SentenceTransformer('clip-ViT-B-32-multilingual-v1', device=device)
 
-# -----------------------------------------
-# Load CIFAR-10 dataset (first 200 test images)
-# -----------------------------------------
+
+# Loading CIFAR-10 dataset (first 200 test images)
+
 class_names = ['airplane','automobile','bird','cat','deer','dog','frog','horse','ship','truck']
 
 transform = transforms.Compose([
@@ -46,9 +40,9 @@ with torch.no_grad():
     image_embeddings = clip_model.encode_image(image_batch).float()
     image_embeddings /= image_embeddings.norm(dim=-1, keepdim=True)
 
-# -----------------------------------------
+
 # Image-to-Image search with similarity
-# -----------------------------------------
+
 def image_to_image_with_scores(uploaded_image, topk=5):
     uploaded_image = uploaded_image.convert("RGB").resize((224,224))
     image_tensor = preprocess(uploaded_image).unsqueeze(0).to(device)
@@ -65,9 +59,9 @@ def image_to_image_with_scores(uploaded_image, topk=5):
         results.append((original_images[idx], f"{class_names[labels[idx]]}\nScore: {sim_score:.2f}"))
     return results
 
-# -----------------------------------------
+
 # Text-to-Image search (multilingual) with similarity
-# -----------------------------------------
+
 def text_to_image_with_scores(query, topk=5):
     text_embedding = text_model.encode([query], convert_to_tensor=True, device=device).clone()
     text_embedding /= text_embedding.norm(dim=-1, keepdim=True)
@@ -81,9 +75,9 @@ def text_to_image_with_scores(query, topk=5):
         results.append((original_images[idx], f"{class_names[labels[idx]]}\nScore: {sim_score:.2f}"))
     return results
 
-# -----------------------------------------
+
 # Gradio Interface
-# -----------------------------------------
+
 with gr.Blocks(title="Multilingual CLIP Image Search (CPU)") as demo:
     gr.Markdown("##  CLIP + M-CLIP Image Retrieval Demo\nUpload an image or type text in any language.")
     
@@ -93,10 +87,11 @@ with gr.Blocks(title="Multilingual CLIP Image Search (CPU)") as demo:
         image_button = gr.Button("Find Similar ")
         image_button.click(image_to_image_with_scores, inputs=image_input, outputs=image_gallery)
     
-    with gr.Tab("🈴 Text-to-Image Search"):
+    with gr.Tab(" Text-to-Image Search"):
         text_input = gr.Textbox(label="Enter query (any language, e.g., कुत्ता, horse, chien, 狗)")
         text_gallery = gr.Gallery(label="Results", show_label=False, columns=5, height=200)
         text_button = gr.Button("Search ")
         text_button.click(text_to_image_with_scores, inputs=text_input, outputs=text_gallery)
 
 demo.launch()
+
